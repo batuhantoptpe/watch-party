@@ -12,8 +12,10 @@ import type {
 import { forwardToActiveFrame } from "./frameTarget.js";
 import { state } from "./state.js";
 
-// MVP: relay server runs locally. Swap for a deployed URL once one exists.
-const SERVER_URL = "http://localhost:8080";
+// Deployed on Render (free tier — sleeps after 15 min idle, first connect
+// after that can take a bit). For local development against `npm run
+// dev:server` instead, swap this to "http://localhost:8080".
+const SERVER_URL = "https://watch-party-server-lzue.onrender.com";
 
 let socket: Socket | null = null;
 
