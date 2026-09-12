@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Watch Party — Protokol Test Sayfası</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 30px auto; padding: 0 16px; }
+  video { width: 100%; background: #000; }
+  #controls { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+  input { padding: 6px; font-size: 1rem; }
+  #chat-log { border: 1px solid #ccc; height: 120px; overflow-y: auto; padding: 6px; font-size: 0.9rem; }
+  #status { font-weight: 600; }
+  .peer { color: #666; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+  <h1>Watch Party — Protokol Test Sayfası</h1>
+  <p>Bu sayfa eklenti olmadan sunucu + protokolü uçtan uca test etmek için. İki farklı sekmede/tarayıcıda açıp aynı oda koduna katılın.</p>
+
+  <div id="controls">
+    <button id="create-room">Oda Oluştur</button>
+    <input id="join-code" placeholder="ODA KODU" maxlength="6" />
+    <button id="join-room">Odaya Katıl</button>
+  </div>
+  <p id="status">Bağlı değil</p>
+
+  <video id="video" controls>
+    <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" type="video/webm" />
+  </video>
+
+  <h3>Sohbet</h3>
+  <div id="chat-log"></div>
+  <div id="controls">
+    <input id="chat-input" placeholder="Mesaj yaz..." />
+    <button id="chat-send">Gönder</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const video = document.getElementById("video");
+    const statusEl = document.getElementById("status");
+    const chatLog = document.getElementById("chat-log");
+
+    let roomCode = null;
+    let suppressUntil = 0;
+    const SUPPRESS_WINDOW_MS = 400;
+    const SEEK_EPSILON_S = 0.35;
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function logChat(line) {
+      const p = document.createElement("div");
+      p.textContent = line;
+      chatLog.appendChild(p);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function sendLocal(type) {
+      if (!roomCode) return;
+      if (Date.now() < suppressUntil) return; // feedback-loop guard
+      socket.emit(type, { type, roomCode, currentTime: video.currentTime, originTimestamp: Date.now() });
+    }
+
+    function applyRemote(type, currentTime) {
+      suppressUntil = Date.now() + SUPPRESS_WINDOW_MS;
+      if (Math.abs(video.currentTime - currentTime) > SEEK_EPSILON_S) {
+        video.currentTime = currentTime;
+      }
+      if (type === "play") video.play().catch(() => {});
+      if (type === "pause") video.pause();
+    }
+
+    video.addEventListener("play", () => sendLocal("play"));
+    video.addEventListener("pause", () => sendLocal("pause"));
+    video.addEventListener("seeked", () => sendLocal("seek"));
+
+    ["play", "pause", "seek"].forEach((type) => {
+      socket.on(type, (event) => applyRemote(type, event.currentTime));
+    });
+
+    socket.on("peer-joined", (event) => logChat(`[sistem] Katılan: ${event.peer.peerId.slice(0, 6)}`));
+    socket.on("peer-left", (event) => logChat(`[sistem] Ayrılan: ${event.peerId.slice(0, 6)}`));
+    socket.on("chat-message", (event) => logChat(`${event.senderId.slice(0, 6)}: ${event.text}`));
+
+    socket.on("connect", () => setStatus(`Bağlı (${socket.id.slice(0, 6)})`));
+    socket.on("disconnect", () => setStatus("Bağlantı koptu"));
+
+    document.getElementById("create-room").onclick = () => {
+      socket.emit("create-room", (ack) => {
+        roomCode = ack.roomCode;
+        setStatus(`Oda oluşturuldu: ${roomCode}`);
+      });
+    };
+
+    document.getElementById("join-room").onclick = () => {
+      const code = document.getElementById("join-code").value.trim().toUpperCase();
+      socket.emit("join-room", { type: "join-room", roomCode: code }, (ack) => {
+        if (ack.ok) {
+          roomCode = code;
+          setStatus(`Odaya katıldı: ${roomCode} (${ack.peers.length} diğer kişi)`);
+        } else {
+          setStatus(`Hata: ${ack.error}`);
+        }
+      });
+    };
+
+    // Drift-correction heartbeat
+    setInterval(() => {
+      if (!roomCode) return;
+      socket.emit("heartbeat-sync", {
+        type: "heartbeat-sync",
+        roomCode,
+        currentTime: video.currentTime,
+        isPlaying: !video.paused,
+        originTimestamp: Date.now(),
+      });
+    }, 4000);
+
+    socket.on("heartbeat-sync", (event) => {
+      const elapsed = event.isPlaying ? (Date.now() - event.originTimestamp) / 1000 : 0;
+      const expected = event.currentTime + elapsed;
+      if (Math.abs(video.currentTime - expected) > 0.75) {
+        applyRemote("seek", expected);
+      }
+    });
+
+    document.getElementById("chat-send").onclick = () => {
+      const input = document.getElementById("chat-input");
+      if (!roomCode || !input.value.trim()) return;
+      socket.emit("chat-message", { type: "chat-message", roomCode, text: input.value, originTimestamp: Date.now() });
+      input.value = "";
+    };
+  </script>
+</body>
+</html>

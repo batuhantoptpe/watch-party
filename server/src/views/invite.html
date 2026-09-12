@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>Watch Party Daveti</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 480px; margin: 60px auto; padding: 0 20px; color: #222; }
+  .code { font-size: 2rem; letter-spacing: 0.2em; font-weight: 700; background: #f2f2f2; padding: 12px 20px; border-radius: 8px; display: inline-block; margin: 16px 0; }
+  ol { line-height: 1.8; }
+  button { font-size: 1rem; padding: 8px 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <h1>Bir Film Gecesine Davet Edildiniz</h1>
+  <ol>
+    <li>Watch Party Chrome eklentisini kurun.</li>
+    <li>Eklenti ikonuna tıklayın.</li>
+    <li>Aşağıdaki oda kodunu girin:</li>
+  </ol>
+  <div class="code" id="room-code">__ROOM_CODE__</div>
+  <br />
+  <button onclick="copyCode()">Kodu Kopyala</button>
+  <p id="copy-status"></p>
+  <script>
+    function copyCode() {
+      const code = document.getElementById('room-code').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        document.getElementById('copy-status').textContent = 'Kopyalandı!';
+      });
+    }
+  </script>
+</body>
+</html>

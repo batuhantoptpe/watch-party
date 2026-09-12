@@ -1,0 +1,348 @@
+/*
+  Design concept: a movie ticket in a dark theater, not a settings panel.
+  Deep night backdrop + one warm marquee-amber accent; dashed rules echo a
+  ticket's perforation; the room code sits in a monospace "ticket chip".
+  Committed to one dark, cinema-toned look on purpose — this is a tool for
+  watching something together in a dim room, not a general utility.
+*/
+
+:root {
+  --bg: #17141f;
+  --surface: #211c2c;
+  --surface-raised: #2a2438;
+  --text: #f4efe8;
+  --text-muted: #ada2bf;
+  --accent: #f2a65a;
+  --accent-ink: #2b1608;
+  --online: #8bbf8a;
+  --border: rgba(244, 239, 232, 0.1);
+  --border-strong: rgba(244, 239, 232, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 360px;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-mark svg {
+  width: 10px;
+  height: 10px;
+  fill: var(--accent);
+}
+
+.brand-name {
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: 16.5px;
+  letter-spacing: 0.01em;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.status[data-state="connecting"] .status-dot {
+  background: var(--accent);
+  animation: pulse 1.1s ease-in-out infinite;
+}
+
+.status[data-state="connected"] .status-dot {
+  background: var(--online);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.divider {
+  border: none;
+  border-top: 1px dashed var(--border-strong);
+  margin: 0;
+}
+
+.body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lede {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.btn {
+  appearance: none;
+  border: none;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 11px 16px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background: #f5b471;
+}
+
+.btn-secondary {
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+}
+
+.btn-secondary:hover {
+  background: #332b44;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 0;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+}
+
+.btn-ghost:hover {
+  color: var(--text);
+}
+
+.join-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  color: var(--text);
+  font: inherit;
+  padding: 10px 12px;
+}
+
+.input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.input-code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.join-label {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 0;
+}
+
+.room-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0 4px;
+}
+
+.room-panel-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.room-code-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+.room-code-chip .code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 19px;
+  letter-spacing: 0.22em;
+  font-weight: 600;
+}
+
+.copy-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.peer-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-log {
+  height: 132px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-right: 2px;
+}
+
+.chat-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: auto 0;
+  text-align: center;
+}
+
+.chat-row {
+  display: flex;
+}
+
+.chat-row.mine {
+  justify-content: flex-end;
+}
+
+.chat-row.system {
+  justify-content: center;
+}
+
+.bubble {
+  max-width: 78%;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.chat-row.mine .bubble {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+}
+
+.chat-row.system .bubble {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  padding: 2px 0;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.send-btn {
+  appearance: none;
+  border: none;
+  border-radius: 9px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  width: 38px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-btn:hover {
+  background: #332b44;
+}
+
+.send-btn svg {
+  width: 15px;
+  height: 15px;
+  fill: var(--accent);
+}
+
+.leave-row {
+  display: flex;
+  justify-content: center;
+}
+
+.error-text {
+  margin: 0;
+  color: #e08a8a;
+  font-size: 12px;
+}
