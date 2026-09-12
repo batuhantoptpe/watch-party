@@ -132,6 +132,12 @@ body {
   padding: 11px 16px;
 }
 
+.btn:disabled,
+.input:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .btn-primary {
   background: var(--accent);
   color: var(--accent-ink);

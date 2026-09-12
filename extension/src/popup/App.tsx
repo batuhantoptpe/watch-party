@@ -28,7 +28,6 @@ export function App() {
       </header>
       <hr className="divider" />
       <div className="body">
-        {joinError && <p className="error-text">{joinError}</p>}
         {snapshot.roomCode ? (
           <>
             <RoomPanel roomCode={snapshot.roomCode} peerCount={snapshot.peerCount} />
@@ -41,6 +40,7 @@ export function App() {
           </>
         ) : (
           <CreateOrJoinRoom
+            joinError={joinError}
             onCreate={() => send({ kind: "create-room" })}
             onJoin={(roomCode) => send({ kind: "join-room", roomCode })}
           />
