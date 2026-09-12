@@ -45,14 +45,21 @@ function handlePopupMessage(message: PopupToBackground, port: chrome.runtime.Por
       port.postMessage({ kind: "status-update", snapshot: state.snapshot() } satisfies BackgroundToPopup);
       break;
     case "create-room":
-      connection.createRoom();
+      connection.createRoom().catch((err: Error) => {
+        port.postMessage({ kind: "room-error", error: err.message } satisfies BackgroundToPopup);
+      });
       break;
     case "join-room":
-      connection.joinRoom(message.roomCode).then((ack) => {
-        if (!ack.ok) {
-          port.postMessage({ kind: "join-error", error: ack.error } satisfies BackgroundToPopup);
-        }
-      });
+      connection
+        .joinRoom(message.roomCode)
+        .then((ack) => {
+          if (!ack.ok) {
+            port.postMessage({ kind: "room-error", error: ack.error } satisfies BackgroundToPopup);
+          }
+        })
+        .catch((err: Error) => {
+          port.postMessage({ kind: "room-error", error: err.message } satisfies BackgroundToPopup);
+        });
       break;
     case "leave-room":
       connection.leaveRoom();

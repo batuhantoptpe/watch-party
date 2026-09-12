@@ -17,6 +17,24 @@ import { state } from "./state.js";
 // dev:server` instead, swap this to "http://localhost:8080".
 const SERVER_URL = "https://watch-party-server-lzue.onrender.com";
 
+const REQUEST_TIMEOUT_MS = 15000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMessage: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(timeoutMessage)), REQUEST_TIMEOUT_MS);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
 let socket: Socket | null = null;
 
 function ensureSocket(): Socket {
@@ -91,26 +109,32 @@ export function ensureConnected(): void {
 
 export function createRoom(): Promise<CreateRoomAck> {
   const s = ensureSocket();
-  return new Promise((resolve) => {
-    s.emit("create-room", (ack: CreateRoomAck) => {
-      state.setRoom(ack.roomCode, ack.peerId);
-      state.setPeerCount(0);
-      resolve(ack);
-    });
-  });
+  return withTimeout(
+    new Promise<CreateRoomAck>((resolve) => {
+      s.emit("create-room", (ack: CreateRoomAck) => {
+        state.setRoom(ack.roomCode, ack.peerId);
+        state.setPeerCount(0);
+        resolve(ack);
+      });
+    }),
+    "Sunucuya bağlanılamadı (zaman aşımı). İnternet bağlantınızı kontrol edip tekrar deneyin.",
+  );
 }
 
 export function joinRoom(roomCode: string): Promise<JoinRoomAck> {
   const s = ensureSocket();
-  return new Promise((resolve) => {
-    s.emit("join-room", { type: "join-room", roomCode }, (ack: JoinRoomAck) => {
-      if (ack.ok) {
-        state.setRoom(roomCode, ack.peerId);
-        state.setPeerCount(ack.peers.length);
-      }
-      resolve(ack);
-    });
-  });
+  return withTimeout(
+    new Promise<JoinRoomAck>((resolve) => {
+      s.emit("join-room", { type: "join-room", roomCode }, (ack: JoinRoomAck) => {
+        if (ack.ok) {
+          state.setRoom(roomCode, ack.peerId);
+          state.setPeerCount(ack.peers.length);
+        }
+        resolve(ack);
+      });
+    }),
+    "Sunucuya bağlanılamadı (zaman aşımı). İnternet bağlantınızı kontrol edip tekrar deneyin.",
+  );
 }
 
 export function leaveRoom(): void {

@@ -15,7 +15,7 @@ function BrandMark() {
 }
 
 export function App() {
-  const { snapshot, joinError, send } = usePopupPort();
+  const { snapshot, roomError, send } = usePopupPort();
 
   return (
     <div className="app">
@@ -40,7 +40,7 @@ export function App() {
           </>
         ) : (
           <CreateOrJoinRoom
-            joinError={joinError}
+            roomError={roomError}
             onCreate={() => send({ kind: "create-room" })}
             onJoin={(roomCode) => send({ kind: "join-room", roomCode })}
           />

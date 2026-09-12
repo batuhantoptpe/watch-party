@@ -12,7 +12,7 @@ const initialSnapshot: StatusSnapshot = {
 export function usePopupPort() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const [snapshot, setSnapshot] = useState<StatusSnapshot>(initialSnapshot);
-  const [joinError, setJoinError] = useState<string | null>(null);
+  const [roomError, setRoomError] = useState<string | null>(null);
 
   useEffect(() => {
     const port = chrome.runtime.connect({ name: "popup" });
@@ -21,9 +21,9 @@ export function usePopupPort() {
     port.onMessage.addListener((message: BackgroundToPopup) => {
       if (message.kind === "status-update") {
         setSnapshot(message.snapshot);
-        setJoinError(null);
-      } else if (message.kind === "join-error") {
-        setJoinError(message.error);
+        setRoomError(null);
+      } else if (message.kind === "room-error") {
+        setRoomError(message.error);
       }
     });
 
@@ -36,5 +36,5 @@ export function usePopupPort() {
     portRef.current?.postMessage(message);
   }
 
-  return { snapshot, joinError, send };
+  return { snapshot, roomError, send };
 }

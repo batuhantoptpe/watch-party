@@ -94,9 +94,9 @@ export interface StatusUpdateMessage {
   snapshot: StatusSnapshot;
 }
 
-export interface JoinErrorMessage {
-  kind: "join-error";
+export interface RoomErrorMessage {
+  kind: "room-error";
   error: string;
 }
 
-export type BackgroundToPopup = StatusUpdateMessage | JoinErrorMessage;
+export type BackgroundToPopup = StatusUpdateMessage | RoomErrorMessage;

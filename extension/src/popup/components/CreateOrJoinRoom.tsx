@@ -5,21 +5,21 @@ const SLOW_HINT_DELAY_MS = 4000;
 export function CreateOrJoinRoom({
   onCreate,
   onJoin,
-  joinError,
+  roomError,
 }: {
   onCreate: () => void;
   onJoin: (code: string) => void;
-  joinError: string | null;
+  roomError: string | null;
 }) {
   const [code, setCode] = useState("");
   const [pending, setPending] = useState<"create" | "join" | null>(null);
   const [showSlowHint, setShowSlowHint] = useState(false);
   const hintTimer = useRef<number>();
 
-  // A failed join re-enables the form so the user can try again.
+  // A failed create/join re-enables the form so the user can try again.
   useEffect(() => {
-    if (joinError) setPending(null);
-  }, [joinError]);
+    if (roomError) setPending(null);
+  }, [roomError]);
 
   useEffect(() => {
     window.clearTimeout(hintTimer.current);
@@ -62,8 +62,10 @@ export function CreateOrJoinRoom({
           {pending === "join" ? "..." : "Katıl"}
         </button>
       </div>
-      {showSlowHint && <p className="join-label">Sunucu uyanıyor olabilir, ilk seferde 20-30 saniye sürebilir</p>}
-      {joinError && <p className="error-text">{joinError}</p>}
+      {showSlowHint && !roomError && (
+        <p className="join-label">Sunucu uyanıyor olabilir, ilk seferde 20-30 saniye sürebilir</p>
+      )}
+      {roomError && <p className="error-text">{roomError}</p>}
     </>
   );
 }
