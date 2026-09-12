@@ -58,6 +58,7 @@ export interface StatusSnapshot {
   peerId: string | null;
   peerCount: number;
   chatHistory: ChatEntry[];
+  videoDetected: boolean;
 }
 
 export interface CreateRoomPopupMessage {

@@ -2,6 +2,7 @@ import { ChatPanel } from "./components/ChatPanel.js";
 import { ConnectionStatus } from "./components/ConnectionStatus.js";
 import { CreateOrJoinRoom } from "./components/CreateOrJoinRoom.js";
 import { RoomPanel } from "./components/RoomPanel.js";
+import { VideoStatus } from "./components/VideoStatus.js";
 import { usePopupPort } from "./usePopupPort.js";
 
 function BrandMark() {
@@ -28,6 +29,7 @@ export function App() {
       </header>
       <hr className="divider" />
       <div className="body">
+        <VideoStatus videoDetected={snapshot.videoDetected} />
         {snapshot.roomCode ? (
           <>
             <RoomPanel roomCode={snapshot.roomCode} peerCount={snapshot.peerCount} />

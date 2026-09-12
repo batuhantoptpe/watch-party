@@ -8,6 +8,7 @@ function handleContentMessage(message: ContentToBackground, sender: chrome.runti
       if (sender.tab?.id !== undefined && sender.frameId !== undefined) {
         state.activeTarget = { tabId: sender.tab.id, frameId: sender.frameId };
       }
+      state.setVideoDetected();
       break;
     case "local-play":
       connection.sendPlaybackEvent("play", message.currentTime);

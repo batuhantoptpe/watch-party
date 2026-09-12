@@ -18,6 +18,14 @@ class BackgroundState {
   peerCount = 0;
   chatHistory: ChatEntry[] = [];
   activeTarget: ActiveTarget | null = null;
+  /**
+   * True once some page's content script has ever reported finding a
+   * playable <video>. There's no clean "un-detect" signal (a page not
+   * having a video isn't an event), so this is "found at least once this
+   * session" rather than "is on the current page right now" — good enough
+   * to answer "does the extension see a video on this kind of site at all".
+   */
+  videoDetected = false;
 
   private listeners = new Set<(snapshot: StatusSnapshot) => void>();
 
@@ -33,7 +41,14 @@ class BackgroundState {
       peerId: this.peerId,
       peerCount: this.peerCount,
       chatHistory: this.chatHistory,
+      videoDetected: this.videoDetected,
     };
+  }
+
+  setVideoDetected(): void {
+    if (this.videoDetected) return;
+    this.videoDetected = true;
+    this.notify();
   }
 
   setStatus(status: ConnectionStatus): void {

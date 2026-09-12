@@ -7,6 +7,7 @@ const initialSnapshot: StatusSnapshot = {
   peerId: null,
   peerCount: 0,
   chatHistory: [],
+  videoDetected: false,
 };
 
 export function usePopupPort() {
