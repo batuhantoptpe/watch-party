@@ -41,13 +41,13 @@ const stopWatching = findAndWatchVideo((video) => {
 chrome.runtime.onMessage.addListener((message: BackgroundToContent) => {
   switch (message.kind) {
     case "remote-play":
-      controller.applyRemote("play", message.currentTime);
+      controller.applyRemote("play", message.currentTime, message.originTimestamp);
       break;
     case "remote-pause":
-      controller.applyRemote("pause", message.currentTime);
+      controller.applyRemote("pause", message.currentTime, message.originTimestamp);
       break;
     case "remote-seek":
-      controller.applyRemote("seek", message.currentTime);
+      controller.applyRemote("seek", message.currentTime, message.originTimestamp);
       break;
     case "remote-sync":
       controller.applyDriftCorrection(message.expectedTime);

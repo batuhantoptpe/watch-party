@@ -62,11 +62,19 @@ export class VideoController {
     chrome.runtime.sendMessage(message).catch(() => {});
   }
 
-  applyRemote(action: PlaybackAction, currentTime: number): void {
+  applyRemote(action: PlaybackAction, currentTime: number, originTimestamp: number): void {
     if (!this.video) return;
     this.suppressUntil = Date.now() + GUARD_SUPPRESS_WINDOW_MS;
-    if (Math.abs(this.video.currentTime - currentTime) > SEEK_EPSILON_S) {
-      this.video.currentTime = currentTime;
+
+    // "play" means playback keeps advancing from the moment it was sent, so
+    // the position is stale by however long the network round-trip took —
+    // project it forward. "pause"/"seek" land on a fixed point in time, so
+    // no compensation is needed there (and adding it would overshoot).
+    const targetTime =
+      action === "play" ? currentTime + Math.max(0, (Date.now() - originTimestamp) / 1000) : currentTime;
+
+    if (Math.abs(this.video.currentTime - targetTime) > SEEK_EPSILON_S) {
+      this.video.currentTime = targetTime;
     }
     if (action === "play") {
       this.video.play().catch(() => {

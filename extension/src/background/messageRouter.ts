@@ -79,9 +79,13 @@ export function registerMessageRouter(): void {
   chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== "popup") return;
     popupPorts.add(port);
+    state.setPopupOpen(true);
     port.postMessage({ kind: "status-update", snapshot: state.snapshot() } satisfies BackgroundToPopup);
     port.onMessage.addListener((message: PopupToBackground) => handlePopupMessage(message, port));
-    port.onDisconnect.addListener(() => popupPorts.delete(port));
+    port.onDisconnect.addListener(() => {
+      popupPorts.delete(port);
+      state.setPopupOpen(popupPorts.size > 0);
+    });
   });
 
   state.onChange((snapshot) => broadcastToPopups({ kind: "status-update", snapshot }));

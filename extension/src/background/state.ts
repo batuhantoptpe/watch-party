@@ -26,6 +26,8 @@ class BackgroundState {
    * to answer "does the extension see a video on this kind of site at all".
    */
   videoDetected = false;
+  private popupOpen = false;
+  private unreadCount = 0;
 
   private listeners = new Set<(snapshot: StatusSnapshot) => void>();
 
@@ -71,7 +73,28 @@ class BackgroundState {
   addChatEntry(entry: ChatEntry): void {
     this.chatHistory.push(entry);
     if (this.chatHistory.length > 200) this.chatHistory.shift();
+    // Popup is almost always closed while actually watching, so a badge on
+    // the toolbar icon is the only way an incoming message gets noticed.
+    if (!this.popupOpen && !entry.isLocal && entry.senderId !== "system") {
+      this.unreadCount++;
+      this.updateBadge();
+    }
     this.notify();
+  }
+
+  /** Called by the message router whenever a popup connects/disconnects. */
+  setPopupOpen(open: boolean): void {
+    this.popupOpen = open;
+    if (open) {
+      this.unreadCount = 0;
+      this.updateBadge();
+    }
+  }
+
+  private updateBadge(): void {
+    const text = this.unreadCount > 0 ? String(Math.min(this.unreadCount, 99)) : "";
+    chrome.action.setBadgeText({ text }).catch(() => {});
+    chrome.action.setBadgeBackgroundColor({ color: "#f2a65a" }).catch(() => {});
   }
 
   async restoreRoomCode(): Promise<string | null> {

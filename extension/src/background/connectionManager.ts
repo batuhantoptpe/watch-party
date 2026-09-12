@@ -79,7 +79,11 @@ function ensureSocket(): Socket {
 
   (["play", "pause", "seek"] satisfies PlaybackAction[]).forEach((action) => {
     socket!.on(action, (event: PlaybackEventBroadcast) => {
-      forwardToActiveFrame({ kind: `remote-${action}`, currentTime: event.currentTime });
+      forwardToActiveFrame({
+        kind: `remote-${action}`,
+        currentTime: event.currentTime,
+        originTimestamp: event.originTimestamp,
+      });
     });
   });
 
