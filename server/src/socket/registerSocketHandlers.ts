@@ -35,6 +35,13 @@ function leaveCurrentRoom(io: Server, socket: Socket<any, any, any, SocketData>,
 
 export function registerSocketHandlers(io: Server, roomStore: RoomStore): void {
   io.on("connection", (socket: Socket<any, any, any, SocketData>) => {
+    // Trivial echo so each client can measure its own round-trip time to
+    // this server — used to compensate for network delay without ever
+    // needing to compare timestamps across two different machines' clocks.
+    socket.on("ping", (ack: () => void) => {
+      if (typeof ack === "function") ack();
+    });
+
     socket.on("create-room", (ack: (res: CreateRoomAck) => void) => {
       const room = roomStore.createRoom();
       roomStore.addPeer(room.code, { peerId: socket.id, joinedAt: Date.now() });

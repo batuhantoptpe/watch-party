@@ -34,7 +34,6 @@ export type ContentToBackground =
 export interface RemotePlaybackMessage {
   kind: "remote-play" | "remote-pause" | "remote-seek";
   currentTime: number;
-  originTimestamp: number;
 }
 
 export interface RemoteSyncMessage {

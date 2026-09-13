@@ -35,6 +35,23 @@ function withTimeout<T>(promise: Promise<T>, timeoutMessage: string): Promise<T>
   });
 }
 
+// One-way network latency estimate, used to compensate a remote "play"
+// action for how long it took to arrive. Deliberately NOT computed by
+// comparing the sender's timestamp against our own clock — two different
+// computers' clocks are rarely in sync, and that comparison can come out
+// wrong in either direction. Instead each client measures its own
+// round-trip time to the server (which only ever compares its own clock
+// against itself) and halves it.
+let estimatedLatencyMs = 100;
+let latencyPingTimer: ReturnType<typeof setInterval> | undefined;
+
+function measureLatency(s: Socket): void {
+  const start = Date.now();
+  s.emit("ping", () => {
+    estimatedLatencyMs = Math.max(0, Date.now() - start) / 2;
+  });
+}
+
 let socket: Socket | null = null;
 
 function ensureSocket(): Socket {
@@ -48,6 +65,9 @@ function ensureSocket(): Socket {
   socket.on("connect", () => {
     console.log("[watch-party] socket connected", socket!.id);
     state.setStatus("connected");
+    measureLatency(socket!);
+    clearInterval(latencyPingTimer);
+    latencyPingTimer = setInterval(() => measureLatency(socket!), 8000);
   });
   socket.on("disconnect", (reason) => {
     console.log("[watch-party] socket disconnected", reason);
@@ -79,16 +99,15 @@ function ensureSocket(): Socket {
 
   (["play", "pause", "seek"] satisfies PlaybackAction[]).forEach((action) => {
     socket!.on(action, (event: PlaybackEventBroadcast) => {
-      forwardToActiveFrame({
-        kind: `remote-${action}`,
-        currentTime: event.currentTime,
-        originTimestamp: event.originTimestamp,
-      });
+      // Only "play" needs projecting forward — pause/seek land on a fixed
+      // point in time regardless of how long the message took to arrive.
+      const currentTime = action === "play" ? event.currentTime + estimatedLatencyMs / 1000 : event.currentTime;
+      forwardToActiveFrame({ kind: `remote-${action}`, currentTime });
     });
   });
 
   socket.on("heartbeat-sync", (event: HeartbeatSyncBroadcast) => {
-    const elapsedSinceOrigin = event.isPlaying ? (Date.now() - event.originTimestamp) / 1000 : 0;
+    const elapsedSinceOrigin = event.isPlaying ? estimatedLatencyMs / 1000 : 0;
     const expectedTime = event.currentTime + elapsedSinceOrigin;
     forwardToActiveFrame({ kind: "remote-sync", expectedTime });
   });
