@@ -19,6 +19,15 @@ class BackgroundState {
   chatHistory: ChatEntry[] = [];
   activeTarget: ActiveTarget | null = null;
   /**
+   * The tab a room's sync is locked to, set the moment the user creates or
+   * joins a room (whatever tab they were on). Without this, any other tab
+   * that happens to have a video — opening YouTube in a new tab while a
+   * movie sits paused elsewhere, say — would silently steal `activeTarget`,
+   * and remote play/pause/seek would land on the wrong tab instead of the
+   * movie.
+   */
+  pinnedTabId: number | null = null;
+  /**
    * True once some page's content script has ever reported finding a
    * playable <video>. There's no clean "un-detect" signal (a page not
    * having a video isn't an event), so this is "found at least once this
@@ -51,6 +60,30 @@ class BackgroundState {
     if (this.videoDetected) return;
     this.videoDetected = true;
     this.notify();
+  }
+
+  /** Locks sync to whichever tab is currently focused — call when creating/joining a room. */
+  async pinActiveTab(): Promise<void> {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id !== undefined) {
+        // Only clear the existing target if it belonged to some other tab —
+        // if the active tab already found its video (the common case), keep
+        // that target instead of wiping it and waiting for a report that,
+        // having already fired once, will never fire again.
+        if (this.activeTarget?.tabId !== tab.id) {
+          this.activeTarget = null;
+        }
+        this.pinnedTabId = tab.id;
+      }
+    } catch {
+      // Worst case: falls back to "whichever tab reports a video next", the old behavior.
+    }
+  }
+
+  clearPin(): void {
+    this.pinnedTabId = null;
+    this.activeTarget = null;
   }
 
   setStatus(status: ConnectionStatus): void {

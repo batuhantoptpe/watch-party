@@ -6,7 +6,12 @@ function handleContentMessage(message: ContentToBackground, sender: chrome.runti
   switch (message.kind) {
     case "frame-owns-video":
       if (sender.tab?.id !== undefined && sender.frameId !== undefined) {
-        state.activeTarget = { tabId: sender.tab.id, frameId: sender.frameId };
+        // Once a tab is pinned (a room is active), ignore any other tab's
+        // video — otherwise opening something else in a new tab would hijack
+        // sync away from the movie.
+        if (state.pinnedTabId === null || state.pinnedTabId === sender.tab.id) {
+          state.activeTarget = { tabId: sender.tab.id, frameId: sender.frameId };
+        }
       }
       state.setVideoDetected();
       break;
@@ -46,24 +51,29 @@ function handlePopupMessage(message: PopupToBackground, port: chrome.runtime.Por
       port.postMessage({ kind: "status-update", snapshot: state.snapshot() } satisfies BackgroundToPopup);
       break;
     case "create-room":
-      connection.createRoom().catch((err: Error) => {
-        port.postMessage({ kind: "room-error", error: err.message } satisfies BackgroundToPopup);
-      });
+      state.pinActiveTab().then(() =>
+        connection.createRoom().catch((err: Error) => {
+          port.postMessage({ kind: "room-error", error: err.message } satisfies BackgroundToPopup);
+        }),
+      );
       break;
     case "join-room":
-      connection
-        .joinRoom(message.roomCode)
-        .then((ack) => {
-          if (!ack.ok) {
-            port.postMessage({ kind: "room-error", error: ack.error } satisfies BackgroundToPopup);
-          }
-        })
-        .catch((err: Error) => {
-          port.postMessage({ kind: "room-error", error: err.message } satisfies BackgroundToPopup);
-        });
+      state.pinActiveTab().then(() =>
+        connection
+          .joinRoom(message.roomCode)
+          .then((ack) => {
+            if (!ack.ok) {
+              port.postMessage({ kind: "room-error", error: ack.error } satisfies BackgroundToPopup);
+            }
+          })
+          .catch((err: Error) => {
+            port.postMessage({ kind: "room-error", error: err.message } satisfies BackgroundToPopup);
+          }),
+      );
       break;
     case "leave-room":
       connection.leaveRoom();
+      state.clearPin();
       break;
     case "send-chat":
       connection.sendChat(message.text);

@@ -17,5 +17,5 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 // On a fresh service-worker start, rejoin whatever room we were last in
 // (within this browser session — chrome.storage.session clears on browser restart).
 state.restoreRoomCode().then((roomCode) => {
-  if (roomCode) joinRoom(roomCode).catch(() => {});
+  if (roomCode) state.pinActiveTab().then(() => joinRoom(roomCode).catch(() => {}));
 });
