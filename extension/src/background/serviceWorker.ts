@@ -2,7 +2,7 @@ import { ensureConnected, joinRoom } from "./connectionManager.js";
 import { registerMessageRouter } from "./messageRouter.js";
 import { state } from "./state.js";
 
-const KEEPALIVE_ALARM = "watch-party-keepalive";
+const KEEPALIVE_ALARM = "cinemate-keepalive";
 
 registerMessageRouter();
 ensureConnected();

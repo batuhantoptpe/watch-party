@@ -21,6 +21,6 @@ const roomStore = new RoomStore();
 registerSocketHandlers(io, roomStore);
 
 httpServer.listen(PORT, () => {
-  console.log(`Watch Party relay sunucusu http://localhost:${PORT} adresinde çalışıyor`);
+  console.log(`Cinemate relay sunucusu http://localhost:${PORT} adresinde çalışıyor`);
   console.log(`Test sayfası: http://localhost:${PORT}/test.html`);
 });

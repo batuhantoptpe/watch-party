@@ -6,13 +6,13 @@ import { VideoController } from "./videoController.js";
 const controller = new VideoController();
 let heartbeatTimer: number | undefined;
 
-console.log("[watch-party] content script active on", location.href);
+console.log("[cinemate] content script active on", location.href);
 
 let videoFound = false;
 window.setTimeout(() => {
   if (!videoFound) {
     console.warn(
-      "[watch-party] 8 saniye geçti ama bu sayfada/çerçevede senkronlanacak bir <video> bulunamadı:",
+      "[cinemate] 8 saniye geçti ama bu sayfada/çerçevede senkronlanacak bir <video> bulunamadı:",
       location.href,
     );
   }
@@ -20,7 +20,7 @@ window.setTimeout(() => {
 
 const stopWatching = findAndWatchVideo((video) => {
   videoFound = true;
-  console.log("[watch-party] video found and attached:", video, "src:", video.currentSrc || video.src);
+  console.log("[cinemate] video found and attached:", video, "src:", video.currentSrc || video.src);
   controller.attach(video);
 
   const registerMessage: ContentToBackground = { kind: "frame-owns-video" };

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Watch Party",
+  "name": "Cinemate",
   "description": "Uzaktaki bir sevdiğinle herhangi bir sitedeki filmi/diziyi senkron izle.",
   "version": "0.1.0",
   "permissions": ["storage", "tabs", "alarms"],

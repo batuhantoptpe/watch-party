@@ -23,7 +23,7 @@ export function App() {
       <header className="header">
         <div className="brand">
           <BrandMark />
-          <span className="brand-name">Watch Party</span>
+          <span className="brand-name">Cinemate</span>
         </div>
         <ConnectionStatus snapshot={snapshot} />
       </header>

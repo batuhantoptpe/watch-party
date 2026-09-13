@@ -1,4 +1,4 @@
-# Watch Party
+# Cinemate
 
 Uzaktaki iki (ya da daha fazla) kişinin, herhangi bir internet sitesindeki
 filmi/diziyi kendi cihazlarından, kalite kaybı olmadan senkron izlemesi için

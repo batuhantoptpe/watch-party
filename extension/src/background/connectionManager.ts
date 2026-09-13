@@ -63,18 +63,18 @@ function ensureSocket(): Socket {
   socket = io(SERVER_URL, { reconnection: true, transports: ["websocket"] });
 
   socket.on("connect", () => {
-    console.log("[watch-party] socket connected", socket!.id);
+    console.log("[cinemate] socket connected", socket!.id);
     state.setStatus("connected");
     measureLatency(socket!);
     clearInterval(latencyPingTimer);
     latencyPingTimer = setInterval(() => measureLatency(socket!), 8000);
   });
   socket.on("disconnect", (reason) => {
-    console.log("[watch-party] socket disconnected", reason);
+    console.log("[cinemate] socket disconnected", reason);
     state.setStatus("disconnected");
   });
   socket.on("connect_error", (err) => {
-    console.log("[watch-party] socket connect_error", err.message, err);
+    console.log("[cinemate] socket connect_error", err.message, err);
   });
 
   socket.on("peer-joined", (event: PeerJoinedEvent) => {
