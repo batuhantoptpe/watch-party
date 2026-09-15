@@ -31,7 +31,7 @@ never crosses this boundary — only small control messages.
 Every ~4s each peer emits `heartbeat-sync` with its local `currentTime`. A
 receiver projects the sender's time forward by network transit
 (`currentTime + elapsed` when `isPlaying`) and, if the gap versus its own
-`currentTime` exceeds ~0.75s, silently seeks to the expected time. Heartbeats
+`currentTime` exceeds ~2s, silently seeks to the expected time. Heartbeats
 never change play/pause state — only `play`/`pause` events do that.
 
 ## Feedback-loop guard (extension side)
